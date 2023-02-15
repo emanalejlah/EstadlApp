@@ -4,7 +4,7 @@
 //
 //  Created by Tariq Almazyad on 7/17/22.
 //
-
+import Firebase
 import SwiftUI
 import MapKit
 import CoreLocation
@@ -13,8 +13,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var locationStatus: CLAuthorizationStatus?
     @Published var userLocation: CLLocation?
     @Published var isAuthorized: Bool = false
-    @Published var region: MKCoordinateRegion = .init(center: CLLocationCoordinate2D(latitude: 25.869636,
-                                                                                     longitude: 43.498475),
+    @Published var region: MKCoordinateRegion = .init(center: CLLocationCoordinate2D(latitude: 24.7136, longitude: 46.6753),
                                                       span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05))
     override init() {
         super.init()
