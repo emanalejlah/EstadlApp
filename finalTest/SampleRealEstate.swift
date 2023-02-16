@@ -16,8 +16,8 @@ struct SampleRealEstate: View {
     @State var selectedMediaType: MediaType = .photos
     @Binding var coordinateRegion: MKCoordinateRegion
     @Binding var images: [UIImage]
-    @EnvironmentObject var firebaseRealEstateManager: FirebaseRealEstateManager
-    
+//    @EnvironmentObject var firebaseRealEstateManager: FirebaseRealEstateManager
+//    
     
     var body: some View {
         ScrollView{
@@ -42,6 +42,38 @@ struct SampleRealEstate: View {
                 }.tabViewStyle(.page(indexDisplayMode: .always))
                     .indexViewStyle(.page(backgroundDisplayMode: .always))
                     .frame(height:400)
+                    .overlay(
+                        VStack{
+                            HStack{
+                                HStack{
+                                    Image(systemName: "photo")
+                                    Text("\(realEstate.images.count)")
+                                }.padding(8)
+                                    .background(Material.ultraThinMaterial)
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                Spacer()
+                                Image(systemName: "bookmark")
+                                    .padding(8)
+                                        .background(Material.ultraThinMaterial)
+                                        .clipShape(Circle())
+                            }
+                            Spacer()
+                            HStack{
+                                HStack{
+                                    Image(systemName: realEstate.saleCategory.imageName)
+                                    Text(realEstate.saleCategory.title)
+                                }.padding(8)
+                                    .background(Material.ultraThinMaterial)
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                Spacer()
+                                Text("\(realEstate.price, specifier: "%0.0f")")
+                                    .padding(8)
+                                        .background(Material.ultraThinMaterial)
+                                        .clipShape(Circle())
+                            }
+                        }.padding()
+                            .padding(.bottom,40)
+                    )
             }else {
                 Image(systemName: "photo")
                     .resizable()
@@ -187,7 +219,7 @@ struct SampleRealEstate: View {
             Button {
                 realEstate.ownirId = firebaseUserManager.user.id
                  
-                firebaseRealEstateManager.addRealEstate(realEstate: realEstate, images: images) { isSuccess in
+                firebaseUserManager.addRealEstate(realEstate: realEstate, images: images) { isSuccess in
                     
                 }
                 print("DEBUG: MY REAL ESTATE\(realEstate)") 
@@ -219,6 +251,6 @@ struct SampleRealEstate_Previews: PreviewProvider {
         
         .preferredColorScheme(.dark)
        .environmentObject(FirebaseUserManager())
-       .environmentObject(FirebaseRealEstateManager())
+//       .environmentObject(FirebaseRealEstateManager())
     }
 }

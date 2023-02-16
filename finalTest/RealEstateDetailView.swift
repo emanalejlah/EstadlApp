@@ -10,6 +10,8 @@ import LoremSwiftum
 import MapKit
 import SDWebImageSwiftUI
 
+
+
 enum MediaType :String, CaseIterable{
     case photos
     case video
@@ -26,10 +28,14 @@ enum MediaType :String, CaseIterable{
 
 struct RealEstateDetailView: View {
     @EnvironmentObject var firebaseUserManager : FirebaseUserManager
+//    @EnvironmentObject var  firebaseRealEstateManager : FirebaseRealEstateManager
     @Binding var realEstate : RealEstate
     @State var selectedMediaType: MediaType = .photos
-    @Binding var coordinateRegion: MKCoordinateRegion
+    @State var coordinateRegion: MKCoordinateRegion = .init()
+    
    
+   
+    @State var ownrUser  = User()
     
     var body: some View {
         ScrollView{
@@ -42,25 +48,66 @@ struct RealEstateDetailView: View {
                 .pickerStyle(.segmented)
             if !realEstate.images.isEmpty {
                 TabView{
-                    ForEach(realEstate.images, id:\.self){ imageName in
-                        WebImage(url: URL(string: firebaseUserManager.user.profileImageUrl))
-                            .resizable()
-                            .placeholder {
-                            Rectangle().foregroundColor(.gray)
-                        }
-                        .indicator(.activity)
-                        .transition(.fade(duration: 0.5))
-                        .scaledToFill()
+                    ForEach(realEstate.images, id:\.self){ imageUrlString in
+                        if let url = URL(string: imageUrlString){
+                            WebImage(url:url)
+                                .resizable()
+                                .placeholder {
+                                Rectangle().foregroundColor(.gray)
+                            }
+                            .indicator(.activity)
+                            .transition(.fade(duration: 0.5))
                             .scaledToFill()
-                            .frame(width: UIScreen.main.bounds.width - 20 , height: 340)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                            .offset(y: -20)
+                               
+                                .frame(width: UIScreen.main.bounds.width - 20 , height: 340)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .offset(y: -20)
+                        }else {
+                            Image(systemName: "photo")
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 100 , height: 100)
+                                .opacity(0.4)
+                                .padding(.vertical)
+                        }
                         
                     }
                 }
                 .tabViewStyle(.page(indexDisplayMode: .always))
                     .indexViewStyle(.page(backgroundDisplayMode: .always))
                 .frame(height:400)
+                .overlay(
+                    VStack{
+                        HStack{
+                            HStack{
+                                Image(systemName: "photo")
+                                Text("\(realEstate.images.count)")
+                            }.padding(8)
+                                .background(Material.ultraThinMaterial)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                            Spacer()
+                            Image(systemName: "bookmark")
+                                .padding(8)
+                                    .background(Material.ultraThinMaterial)
+                                    .clipShape(Circle())
+                        }
+                        Spacer()
+                        HStack{
+                            HStack{
+                                Image(systemName: realEstate.saleCategory.imageName)
+                                Text(realEstate.saleCategory.title)
+                            }.padding(8)
+                                .background(Material.ultraThinMaterial)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                            Spacer()
+                            Text("\(realEstate.price, specifier: "%0.0f")")
+                                .padding(8)
+                                    .background(Material.ultraThinMaterial)
+                                    .clipShape(Circle())
+                        }
+                    }.padding()
+                        .padding(.bottom,40)
+                )
             } else {
                 Image(systemName: "photo")
                     .resizable()
@@ -128,14 +175,15 @@ struct RealEstateDetailView: View {
                             }
                            )
                 }
+                
 
             }.frame(width: UIScreen.main.bounds.width - 50, height: 240)
                 .cornerRadius(12)
                 .onAppear{
                     coordinateRegion.center = realEstate.location
                     coordinateRegion.span = realEstate.city.extraZoomLevel
-               
                 }
+
           
             persininfo(realEstate: $realEstate)
             
@@ -202,6 +250,16 @@ struct RealEstateDetailView: View {
 //            }.padding(.horizontal ,4)
 
         }
+        .onAppear{
+            coordinateRegion.center = realEstate.location
+                   coordinateRegion.span = realEstate.city.extraZoomLevel
+//
+//               firebaseUserManager.fetchOwnerDetail(userId: realEstate.ownirId){ ownrUser in
+//                self.ownrUser = ownrUser
+//                print("DEBUG: user owner is \(ownrUser.id)")
+//            }
+        }
+
        
         .navigationTitle("Titile")
     }
@@ -354,7 +412,10 @@ struct AmenitiesView: View {
 }
 
 struct persininfo: View {
+//    @EnvironmentObject var firebaseUserManager : FirebaseUserManager
+//    @EnvironmentObject var  firebaseRealEstateManager : FirebaseRealEstateManager
     @Binding var realEstate: RealEstate
+//    @State var ownrUser = User()
     var body: some View{
         VStack(alignment: .leading, spacing:12 ){
             HStack{
@@ -403,7 +464,8 @@ struct persininfo: View {
                     } label: {
                         HStack(spacing: 4){
                             Image(systemName:"phone" )
-                            Text("9708679")
+//                            Text(firebaseUserManager.user.phoneNumber)
+                            
                         }
                         .foregroundColor(.white)
                         .frame(width: 136 , height: 34)
@@ -429,27 +491,31 @@ struct RealEstateDetailView_Previews: PreviewProvider {
     static var previews: some View {
 //        we did here NavigationView
         NavigationView{
-            RealEstateDetailView(realEstate : .constant(realEstateSample),coordinateRegion: .constant(.init(center: City.riyadh.coordinate, span: City.riyadh.extraZoomLevel)))
+            RealEstateDetailView(realEstate :.constant(realEstateSample))
         }
             .preferredColorScheme(.dark)
             .environmentObject(FirebaseUserManager())
+//            .environmentObject(FirebaseRealEstateManager())
     }
 }
 
-let realEstateSample: RealEstate = .init(images: ["Image 1", "Image 2", "Image 3", "Image 4", "Image 5"],
-                                            description : Lorem.paragraph, beds: Int.random(in: 1...4),
-                                            livingRooms: Int.random (in: 1...4),
-                                            space:Int.random (in: 1...4),
-                                            ovens:Int.random (in: 1...4),
-                                            fridges:Int.random (in: 1...4),
-                                            microwaves:Int.random (in: 1...4),
-                                            airConditions:Int.random (in: 1...4),
-                                            isSmart:false , hasWiFi: true , hasPool: false,
-                                            hasElevator:true, hasGym:false,
-                                            age:Int.random (in: 1...4),
-                                            location: City.riyadh.coordinate,
+let realEstateSample: RealEstate = .init(ownirId: "", images: ["Image 1", "Image 2", "Image 3", "Image 4", "Image 5"],
+                                         description : Lorem.paragraph, beds: Int.random(in: 1...4),
+                                         livingRooms: Int.random (in: 1...4),
+                                         space:Int.random (in: 1...4),
+                                         ovens:Int.random (in: 1...4),
+                                         fridges:Int.random (in: 1...4),
+                                         microwaves:Int.random (in: 1...4),
+                                         airConditions:Int.random (in: 1...4),
+                                         isSmart:false , hasWiFi: true , hasPool: false,
+                                         hasElevator:true, hasGym:false,
+                                         age:Int.random (in: 1...4),
+                                         location: City.riyadh.coordinate,
                                          saleCategory:.rent, city:.riyadh, type: .apartment,
-                                            offer: .monthly, isAvailable: true ,price: Int.random (in: 1000...5000))
+                                         offer: .monthly, isAvailable: true ,price: Int.random (in: 1000...5000)
+)
+
+
                                             
                                             
       
